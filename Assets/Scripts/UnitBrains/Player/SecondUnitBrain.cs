@@ -47,11 +47,24 @@ namespace UnitBrains.Player
             // Homework 1.4 (1st block, 4rd module)
             ///////////////////////////////////////
             List<Vector2Int> result = GetReachableTargets();
-            while (result.Count > 1)
+
+            if (result.Count != 0)
             {
-                result.RemoveAt(result.Count - 1);
+                Vector2Int minTarget = result[0];
+                float minDistance = DistanceToOwnBase(minTarget);
+
+                for (int i = 1; i < result.Count; i++)
+                {
+                    float currentDistance = DistanceToOwnBase(result[i]);
+                    if (currentDistance < minDistance)
+                    {
+                        minDistance = currentDistance;
+                        minTarget = result[i];
+                    }
+                }
+                return new List<Vector2Int> { minTarget };
             }
-            return result;
+            else return new List<Vector2Int>();
             ///////////////////////////////////////
         }
 
