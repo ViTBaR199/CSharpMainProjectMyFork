@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Model;
 using Model.Runtime.Projectiles;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using Utilities;
 
 namespace UnitBrains.Player
 {
@@ -38,33 +41,52 @@ namespace UnitBrains.Player
 
         public override Vector2Int GetNextStep()
         {
-            return base.GetNextStep();
+            if (_currentMovementTarget == null) return unit.Pos;
+
+            return unit.Pos.CalcNextStepTowards(_currentMovementTarget.Value);
         }
+
+        private Vector2Int? _currentMovementTarget;
+        private List<Vector2Int> _reachableTargets = new List<Vector2Int>();
 
         protected override List<Vector2Int> SelectTargets()
         {
             ///////////////////////////////////////
             // Homework 1.4 (1st block, 4rd module)
             ///////////////////////////////////////
-            List<Vector2Int> result = GetReachableTargets();
+            ///
+            List<Vector2Int> result = new List<Vector2Int>();
+            var allTarget = GetAllTargets().ToList();
+            _reachableTargets = GetReachableTargets().ToList();
 
-            if (result.Count != 0)
+            if (allTarget.Count > 0)
             {
-                Vector2Int minTarget = result[0];
+                Vector2Int minTarget = allTarget[0];
                 float minDistance = DistanceToOwnBase(minTarget);
 
-                for (int i = 1; i < result.Count; i++)
+                for (int i = 1; i < allTarget.Count; i++)
                 {
-                    float currentDistance = DistanceToOwnBase(result[i]);
+                    float currentDistance = DistanceToOwnBase(allTarget[i]);
                     if (currentDistance < minDistance)
                     {
                         minDistance = currentDistance;
-                        minTarget = result[i];
+                        minTarget = allTarget[i];
                     }
                 }
-                return new List<Vector2Int> { minTarget };
+                if (_reachableTargets.Contains(minTarget))
+                {
+                    result.Add(minTarget);
+                    _currentMovementTarget = null;
+                }
+                else _currentMovementTarget = minTarget;
             }
-            else return new List<Vector2Int>();
+            else
+            {
+                int playerId = IsPlayerUnitBrain ? RuntimeModel.PlayerId : RuntimeModel.BotPlayerId;
+                _currentMovementTarget = runtimeModel.RoMap.Bases[playerId];
+
+            }
+            return result;
             ///////////////////////////////////////
         }
 
