@@ -2,6 +2,7 @@
 using Model;
 using Model.Config;
 using Model.Runtime;
+using UnitBrains;
 using UnityEngine;
 using Utilities;
 using View;
@@ -42,6 +43,11 @@ namespace Controller
             SetInitialMoney();
             var density = Random.Range(_settings.MapMinDensity, _settings.MapMaxDensity);
             var map = MapGenerator.Generate(_settings.MapWidth, _settings.MapHeight, density, level);
+
+            var runtimeModel = ServiceLocator.Get<IReadOnlyRuntimeModel>();
+            var timeUtil = ServiceLocator.Get<TimeUtil>();
+            UnitCoordinatorService.Instance.Init(runtimeModel, timeUtil);
+
             _runtimeModel.Clear();
             _runtimeModel.Map = new Map(map, Settings.PlayersCount);
             _runtimeModel.Stage = RuntimeModel.GameStage.ChooseUnit;
@@ -99,6 +105,7 @@ namespace Controller
             _runtimeModel.Stage = RuntimeModel.GameStage.Finished;
             _rootView.ShowLevelFinished(playerWon);
             _timeUtil.RunDelayed(5f, () => _rootController.OnLevelFinished(playerWon));
+            UnitCoordinatorService.Cleanup();
         }
     }
 }
