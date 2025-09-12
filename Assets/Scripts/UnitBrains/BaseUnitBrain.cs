@@ -16,7 +16,7 @@ namespace UnitBrains
         public virtual bool IsPlayerUnitBrain => true;
         public virtual BaseUnitPath ActivePath => _activePath;
 
-        protected UnitCoordinatorService Coordinator => UnitCoordinatorService.Instance;
+        protected UnitCoordinatorService Coordinator { get; private set; }
         protected Unit unit { get; private set; }
         protected IReadOnlyRuntimeModel runtimeModel => ServiceLocator.Get<IReadOnlyRuntimeModel>();
         private BaseUnitPath _activePath = null;
@@ -168,6 +168,11 @@ namespace UnitBrains
             }
 
             return result;
+        }
+
+        public void SetCoordinator(UnitCoordinatorService coordinator)
+        {
+            Coordinator = coordinator;
         }
     }
 }

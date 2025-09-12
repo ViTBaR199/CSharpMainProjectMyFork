@@ -9,6 +9,9 @@ namespace UnitBrains.Player
     {
         public override Vector2Int GetNextStep()
         {
+            if (Coordinator == null || !Coordinator.IsInitialized)
+                return base.GetNextStep();
+
             if (HasTargetsInRange())
                 return unit.Pos;
 
@@ -25,6 +28,9 @@ namespace UnitBrains.Player
 
         protected override List<Vector2Int> SelectTargets()
         {
+            if (Coordinator == null || !Coordinator.IsInitialized)
+                return base.SelectTargets();
+
             var recommendedTarget = Coordinator.RecomendedTarget;
 
             if (Coordinator.IsTargetInRange(unit.Pos, recommendedTarget, unit.Config.AttackRange))

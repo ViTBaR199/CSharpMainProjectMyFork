@@ -16,31 +16,20 @@ namespace UnitBrains
         private Vector2Int _playerBase => _runtimeModel.RoMap.Bases[RuntimeModel.PlayerId];
         private Vector2Int _enemyBase => _runtimeModel.RoMap.Bases[RuntimeModel.BotPlayerId];
 
-        public static UnitCoordinatorService _instance;
-        public static UnitCoordinatorService Instance
-        {
-            get
-            {
-                if (_instance == null) _instance = new UnitCoordinatorService();
-                return _instance;
-            }
-        }
-
-        private UnitCoordinatorService() { }
-        public bool IsInitialized { get; private set; }
-
-        public Vector2Int RecomendedTarget { get; private set; }
-        public Vector2Int RecomendedPoint { get; private set; }
-
-        private int MapMiddleX => _runtimeModel.RoMap.Width / 2;
-
-        public void Init(IReadOnlyRuntimeModel runtimeModel, TimeUtil timeUtil)
+        public UnitCoordinatorService(IReadOnlyRuntimeModel runtimeModel, TimeUtil timeUtil)
         {
             _runtimeModel = runtimeModel;
             _timeUtil = timeUtil;
             _timeUtil.AddFixedUpdateAction(UpdateRecomendations);
             IsInitialized = true;
         }
+
+        public bool IsInitialized { get; private set; }
+
+        public Vector2Int RecomendedTarget { get; private set; }
+        public Vector2Int RecomendedPoint { get; private set; }
+
+        private int MapMiddleX => _runtimeModel.RoMap.Width / 2;
 
         private void UpdateRecomendations(float deltaTime)
         {
@@ -114,13 +103,6 @@ namespace UnitBrains
         public void Dispose()
         {
             _timeUtil?.RemoveFixedUpdateAction(UpdateRecomendations);
-            _instance = null;
-        }
-
-        public static void Cleanup()
-        {
-            _instance?.Dispose();
-            _instance = null;
         }
     }
 }

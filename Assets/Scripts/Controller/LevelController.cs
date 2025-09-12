@@ -19,6 +19,7 @@ namespace Controller
         private readonly Gameplay3dView _gameplayView;
         private readonly Settings _settings;
         private readonly TimeUtil _timeUtil;
+        private UnitCoordinatorService _coordinatorService;
 
         public LevelController(RuntimeModel runtimeModel, RootController rootController)
         {
@@ -46,7 +47,7 @@ namespace Controller
 
             var runtimeModel = ServiceLocator.Get<IReadOnlyRuntimeModel>();
             var timeUtil = ServiceLocator.Get<TimeUtil>();
-            UnitCoordinatorService.Instance.Init(runtimeModel, timeUtil);
+            _coordinatorService = new UnitCoordinatorService(runtimeModel, timeUtil);
 
             _runtimeModel.Clear();
             _runtimeModel.Map = new Map(map, Settings.PlayersCount);
@@ -78,7 +79,7 @@ namespace Controller
                 _runtimeModel.Map.Bases[forPlayer],
                 _runtimeModel.RoUnits.Select(x => x.Pos).ToHashSet());
             
-            var unit = new Unit(config, pos);
+            var unit = new Unit(config, pos, _coordinatorService);
             _runtimeModel.Money[forPlayer] -= config.Cost;
             _runtimeModel.PlayersUnits[forPlayer].Add(unit);
         }
@@ -105,7 +106,8 @@ namespace Controller
             _runtimeModel.Stage = RuntimeModel.GameStage.Finished;
             _rootView.ShowLevelFinished(playerWon);
             _timeUtil.RunDelayed(5f, () => _rootController.OnLevelFinished(playerWon));
-            UnitCoordinatorService.Cleanup();
+            _coordinatorService?.Dispose();
+            _coordinatorService = null;
         }
     }
 }
