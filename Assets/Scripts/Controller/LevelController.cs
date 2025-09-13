@@ -20,6 +20,7 @@ namespace Controller
         private readonly Settings _settings;
         private readonly TimeUtil _timeUtil;
         private UnitCoordinatorService _coordinatorService;
+        private BuffsSys _buffs;
 
         public LevelController(RuntimeModel runtimeModel, RootController rootController)
         {
@@ -48,6 +49,9 @@ namespace Controller
             var runtimeModel = ServiceLocator.Get<IReadOnlyRuntimeModel>();
             var timeUtil = ServiceLocator.Get<TimeUtil>();
             _coordinatorService = new UnitCoordinatorService(runtimeModel, timeUtil);
+            var buffsSystem = new GameObject("BuffsSystem").AddComponent<BuffsSys>();
+            ServiceLocator.RegisterAs(buffsSystem, typeof(BuffsSys));
+            _buffs = buffsSystem;
 
             _runtimeModel.Clear();
             _runtimeModel.Map = new Map(map, Settings.PlayersCount);
@@ -56,6 +60,15 @@ namespace Controller
             _runtimeModel.Bases[RuntimeModel.BotPlayerId] = new MainBase(_settings.MainBaseMaxHp);
 
             _gameplayView.Reinitialize();
+
+            _timeUtil.RunDelayed(1f, () =>
+            {
+                var testBuff = new BuffsSys.Buff(10f, 5f, 1f);
+                foreach (var unit in _runtimeModel.RoUnits)
+                {
+                    buffsSystem.AddBuff((Unit)unit, testBuff);
+                }
+            });
         }
 
         public void OnPlayersUnitChosen(UnitConfig unitConfig)

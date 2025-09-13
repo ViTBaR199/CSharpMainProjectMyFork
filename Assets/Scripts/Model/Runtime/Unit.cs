@@ -26,6 +26,8 @@ namespace Model.Runtime
         private float _nextBrainUpdateTime = 0f;
         private float _nextMoveTime = 0f;
         private float _nextAttackTime = 0f;
+
+        private BuffsSys _buffsSys => ServiceLocator.Get<BuffsSys>();
         
         public Unit(UnitConfig config, Vector2Int startPos, UnitCoordinatorService unitCoordinator)
         {
@@ -53,13 +55,13 @@ namespace Model.Runtime
             
             if (_nextMoveTime < time)
             {
-                _nextMoveTime = time + Config.MoveDelay;
+                _nextMoveTime = time + GetModifierMoveDelay();
                 Move();
             }
             
             if (_nextAttackTime < time && Attack())
             {
-                _nextAttackTime = time + Config.AttackDelay;
+                _nextAttackTime = time + GetModifierAttackDelay();
             }
         }
 
@@ -100,6 +102,37 @@ namespace Model.Runtime
         public void TakeDamage(int projectileDamage)
         {
             Health -= projectileDamage;
+        }
+
+        private BuffsSys GetBuffsSys()
+        {
+            if (ServiceLocator.Contains<BuffsSys>())
+                return ServiceLocator.Get<BuffsSys>();
+            return null;
+        }
+
+        private float GetModifierMoveDelay()
+        {
+            float baseDelay = Config.MoveDelay;
+            var buffsSys = GetBuffsSys();
+            if (buffsSys != null)
+            {
+                float modifier = buffsSys.GetSpeedModifier(this);
+                return baseDelay / modifier;
+            }
+            return baseDelay;
+        }
+
+        private float GetModifierAttackDelay()
+        {
+            float baseDelay = Config.AttackDelay;
+            var buffsSys = GetBuffsSys();
+            if (buffsSys != null)
+            {
+                float modifier = buffsSys.GetAttackModifier(this);
+                return baseDelay / modifier;
+            }
+            return baseDelay;
         }
     }
 }
